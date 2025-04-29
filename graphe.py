@@ -134,17 +134,17 @@ class Graphe:
         Méthode permettant de renvoyer un état de l'intersection des cycles
         """
 
-        intersection = [self.cycles[0]]
+        intersection = set(self.cycles[0])
 
         for cycle in self.cycles[1:]:
             # On compare les cycles entre eux
-            intersection&= cycle
+            intersection&= set(cycle)
             # On garde l'intersection des cycles
 
         if len(intersection)==0: # Si l'intersection est vide
             return "plus de 1 état présent infiniment souvent"
         else:
-            return intersection[random.randint(0,len(intersection)-1)] 
+            return list(intersection)[random.randint(0,len(intersection)-1)] 
             #on renvoie un etat au hasard parmi ceux trouvés
 
 
@@ -186,7 +186,8 @@ class Graphe:
 
 
 
-
+graphe = Graphe(["A", "B", "C"], {"A": ["B"], "B": ["C"], "C": ["C"]}, "A")
+print(graphe.etat_infini_brute_force())
 
 
 
