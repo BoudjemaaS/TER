@@ -25,7 +25,7 @@ class Graphe:
                     self.transitions_entrantes[k].append(v)
 
         self.cycles=self.trouver_cycles()
-        self.etats_multi_cycles=self.get_etats_multi_cycles()
+        
         self.etats_dans_cycles=self.get_etats_dans_cycles()
 
     def __eq__(self, other):
@@ -65,30 +65,7 @@ class Graphe:
         
         plt.show()
 
-    def supprimer_etat(self,etat_a_sup):
-        """
-        Permet de supprimer un etat, ainsi que les transitions dont il fait partie
-
-        :param etat_a_sup: etat à supprimer
-        """
-
-        self.etats.remove(etat_a_sup) #suppression de la liste d'etats
-
-        for etat in self.transitions_sortantes[etat_a_sup]:
-            self.transitions_entrantes[etat].remove(etat_a_sup)
-
-        del self.transitions_sortantes[etat_a_sup]
-
-        for etat in self.transitions_entrantes[etat_a_sup]:
-            self.transitions_sortantes[etat].remove(etat_a_sup)
-            if len(self.transitions_sortantes[etat])==0:  #suppression des puits
-                self.supprimer_etat(etat)
-                del self.transitions_entrantes[etat]
-
-        if len(self.etats)!=0:
-            self.etat_ini = self.etats[0] #on met à jour l'etat initial
-        else:
-            self.etat_ini = None
+    
 
     def trouver_cycles(self):
         """
@@ -97,20 +74,17 @@ class Graphe:
         """
         cycles = []
         cycles_set = []
-        
             
         chemin = [self.etat_ini] # Liste des etats visités
         pile = [(self.etat_ini, self.transitions_sortantes[self.etat_ini],0)] # Pile pour la recherche en profondeur
         # On initialise la pile avec l'état de départ et ses voisins
-        cpt =0
+        
         while pile:
-            cpt+=1
             
             sommet, voisins, index = pile.pop() 
             
             # l'index permet de savoir quel voisin on est en train d'explorer
             
-
             if index < len(voisins):# On verifie s'il reste des voisins à explorer
                 
                 voisin = voisins[index]
@@ -124,9 +98,7 @@ class Graphe:
                         
                         cycles.append(chemin[chemin.index(voisin):])
                         cycles_set.append(set(chemin[chemin.index(voisin):]))
-                        
-                   
-
+                       
                 elif voisin not in chemin:
                     # Sinon, le voisin devient le nouvel etat à explorer
                     chemin.append(voisin)
@@ -136,25 +108,9 @@ class Graphe:
                 chemin.pop()
                 # s'il n'y a pas de nouveau voisin a visiter, on depile 
 
-        
-        print(cpt)
         return cycles
 
-    def get_etats_multi_cycles(self):
-        """
-        Determine les etats presents dans plus d'un cycle
-
-        :return:
-        """
-        cpt_etat={}
-        for etat in self.etats:
-            cpt_etat[etat]=[]
-        for cycle in self.cycles:
-            for etat in cycle:
-                cpt_etat[etat].append(cycle) #on ajoute le cycle dans lequel l'etat est present
-
-        #etat_multi_cycles = [etat for etat, count in cpt_etat.items() if count > 1]
-        return cpt_etat
+    
 
     def get_etats_dans_cycles(self):
         """
@@ -178,17 +134,17 @@ class Graphe:
         Méthode permettant de renvoyer un état de l'intersection des cycles
         """
 
-        etats_infinis = [self.cycles[0]]
+        intersection = [self.cycles[0]]
 
         for cycle in self.cycles[1:]:
             # On compare les cycles entre eux
-            etats_infinis&= cycle
+            intersection&= cycle
             # On garde l'intersection des cycles
 
-        if len(etats_infinis)==0: # Si l'intersection est vide
+        if len(intersection)==0: # Si l'intersection est vide
             return "plus de 1 état présent infiniment souvent"
         else:
-            return etats_infinis[random.randint(0,len(etats_infinis)-1)] 
+            return intersection[random.randint(0,len(intersection)-1)] 
             #on renvoie un etat au hasard parmi ceux trouvés
 
 
@@ -227,17 +183,6 @@ class Graphe:
             etats_infinis.append(etat_a_supp)
 
         return etats_infinis
-
-
-# Création de graphes complets de taille 2 à 5
-graphes = []
-
-for taille in range(2, 6):
-    etats = [chr(65 + i) for i in range(taille)]  # Génère des états A, B, C, ...
-    transitions = {etat: [e for e in etats if e != etat] for etat in etats}  # Transitions complètes
-    graphe = Graphe(etats, transitions, etats[0])  # L'état initial est le premier
-    graphes.append(graphe)
-graphe6 = Graphe (["A","B","C","D","E","F"], {"A": ["B","C","D","E","F"], "B": ["A","C","D","E","F"],"C":["A","B","D","E","F"],"D":["A","B","C","E","F"],"E":["A","B","C","D","F"],"F":["A","B","C","D","E"]}, "A")
 
 
 
