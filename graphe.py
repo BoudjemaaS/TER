@@ -8,22 +8,20 @@ import unittest
 
 class Graphe:
     def __init__(self, etats, transitions, etat_ini):
+     
         self.etats = etats  # Liste des états
         self.transitions_sortantes = transitions  # Dico de transitions: {"A":["B","C"],"B":[],"C":[]}
                                                  #les etats sans transition sortantes sont renseigné
         self.etat_ini = etat_ini #etat initial
-        self.transitions_entrantes =  {}
+        self.transitions_entrantes =  {etat:[] for etat in etats} 
 
 
-        for i in self.etats:
-            self.transitions_entrantes[i]=[]
-
-
-        for k in self.etats:
-            for v in self.transitions_sortantes.keys():
-                if k in self.transitions_sortantes[v]:
-                    self.transitions_entrantes[k].append(v)
-
+        for src, dest_list in transitions.items():
+            for dest in dest_list:
+                self.transitions_entrantes[dest].append(src)
+                # On remplit le dictionnaire des transitions entrantes
+        
+        
         self.cycles=self.trouver_cycles()
         
         self.etats_dans_cycles=self.get_etats_dans_cycles()
@@ -65,8 +63,6 @@ class Graphe:
         
         plt.show()
 
-    
-
     def trouver_cycles(self):
         """
         Permet de trouver les differents cycles present dans un graophe
@@ -78,9 +74,9 @@ class Graphe:
         chemin = [self.etat_ini] # Liste des etats visités
         pile = [(self.etat_ini, self.transitions_sortantes[self.etat_ini],0)] # Pile pour la recherche en profondeur
         # On initialise la pile avec l'état de départ et ses voisins
-        
+        cp=0
         while pile:
-            
+            cp+=1
             sommet, voisins, index = pile.pop() 
             
             # l'index permet de savoir quel voisin on est en train d'explorer
@@ -92,6 +88,7 @@ class Graphe:
 
                 if voisin in chemin:
                     # Si le voisin est déjà dans le chemin, on a trouvé un cycle
+                    #print(chemin[chemin.index(voisin):])
                     if set(chemin[chemin.index(voisin):]) not in cycles_set:
 
                         # On ne rajoute le cycle que s'il n'est pas déjà présent
@@ -107,10 +104,8 @@ class Graphe:
             else:
                 chemin.pop()
                 # s'il n'y a pas de nouveau voisin a visiter, on depile 
-
+        #print(cp)
         return cycles
-
-    
 
     def get_etats_dans_cycles(self):
         """
@@ -134,21 +129,19 @@ class Graphe:
         Méthode permettant de renvoyer un état de l'intersection des cycles
         """
 
-        intersection = set(self.cycles[0])
+        cycles_set=[set(cycle) for cycle in self.cycles]
+        # On transforme les cycles en set pour permttre l'intersection
 
-        for cycle in self.cycles[1:]:
-            # On compare les cycles entre eux
-            intersection&= set(cycle)
-            # On garde l'intersection des cycles
+
+        intersection = set.intersection(*cycles_set)
+        # On fait l'intersection de tous les cycles
 
         if len(intersection)==0: # Si l'intersection est vide
             return "plus de 1 état présent infiniment souvent"
         else:
-            return list(intersection)[random.randint(0,len(intersection)-1)] 
-            #on renvoie un etat au hasard parmi ceux trouvés
-
-
-        
+            return list(intersection)[0]
+            #return list(intersection)[random.randint(0,len(intersection)-1)] 
+            #on renvoie un etat au hasard parmi ceux trouvés   
 
     def etas_infinis_glouton(self):
         """
@@ -158,27 +151,20 @@ class Graphe:
         :return: Les etats presents infinments souvent, determinés
         """
         etats_infinis=[]
+        
 
         while len(self.cycles)!=0:
         #On supprime les cycles jusqu'a ce qu'il n'y en ai plus
             
             # On cherche l'état à supprimer, celui qui a le plus de transitions sortantes
-            etat_a_supp=sorted(self.get_etats_dans_cycles(),reverse=True, key=lambda cle: len(self.transitions_sortantes[cle]))[0]
-            
+            etat_a_supp=sorted(self.etats_dans_cycles,reverse=True, key=lambda cle: len(self.transitions_sortantes[cle]))[0]
+            self.etats_dans_cycles.remove(etat_a_supp)
             #La liste est mise à jour en fonction de la suppression des cycles
                 #(si le cycle est supprimé, la liste etat_dans_cycless est réduite)
 
-            temp_cycles=copy.deepcopy(self.cycles)
-            #on travail sur une copie, pour ne pas modifier la liste que l'on parcourt
+        
+            self.cycles = [cycle for cycle in self.cycles if etat_a_supp not in cycle]
 
-            for cycle in self.cycles:
-
-                if etat_a_supp in cycle:
-                    # Suppression des cycles comportant l'état à supprimer
-                    temp_cycles.remove(cycle)
-
-            self.cycles=temp_cycles
-            #mise a jour des cycles restants
 
             etats_infinis.append(etat_a_supp)
 
@@ -186,8 +172,25 @@ class Graphe:
 
 
 
-graphe = Graphe(["A", "B", "C"], {"A": ["B"], "B": ["C"], "C": ["C"]}, "A")
-print(graphe.etat_infini_brute_force())
 
+for _ in range (10):
+    Graphe(["1", "2","3"], {"1":["2"],"2":["3"],"3":["1"]},"1").visualiser()
+'''
 
+print("2", end=" ")
+Graphe(["A", "B"], {"A": ["B"], "B": ["A"]}, "A")
+print("3", end=" ")
+Graphe(["A", "B", "C"], {"A": ["B","C"], "B": ["A", "C"], "C": ["A", "B"]}, "A")
+print("4", end=" ")
+Graphe(["A", "B", "C","D"], {"A": ["B","C","D"], "B": ["A", "C","D"], "C": ["A", "B","D"],"D": ["A","B","C"]}, "A")
+print("5", end=" ")
+Graphe(["A", "B", "C","D","E"], {"A": ["B","C","D","E"], "B": ["A", "C","D","E"], "C": ["A", "B","D","E"],"D": ["A", "B","C","E"],"E": ["A", "B","C","D"]}, "A")
 
+print("#############################")
+
+Graphe(["A", "B"], {"A": ["B", "A"], "B": ["A", "B"]}, "A")
+Graphe(["A", "B", "C"], {"A": ["B", "C", "A"], "B": ["A", "C", "B"], "C": ["A", "B", "C"]}, "A")
+Graphe(["A", "B", "C", "D"], {"A": ["B", "C", "D", "A"], "B": ["A", "C", "D", "B"], "C": ["A", "B", "D", "C"], "D": ["A", "B", "C", "D"]}, "A")
+Graphe(["A", "B", "C", "D", "E"], {"A": ["B", "C", "D", "E", "A"], "B": ["A", "C", "D", "E", "B"], "C": ["A", "B", "D", "E", "C"], "D": ["A", "B", "C", "E", "D"], "E": ["A", "B", "C", "D", "E"]}, "A")
+
+'''

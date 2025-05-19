@@ -21,7 +21,6 @@ Graphe([f"S{i}" for i in range(20)] + ["A"], {**{f"S{i}": [f"S{(i + 1) % 20}"] f
 methodes = [
     "etat_infini_brute_force",
     "etas_infinis_glouton",
-    "get_etats_dans_cycles",
     "trouver_cycles"
 ]
 
@@ -42,15 +41,22 @@ Graphe_3([f"S{i}" for i in range(20)] + ["A"], {**{f"S{i}": [f"S{(i + 1) % 20}"]
 methodes_3 = [
     "etat_infini_brute_force_3",
     "etas_infinis_glouton_3",
-    "etats_dans_cycles_3",
     "trouver_cycles_3"
 ]
 
+start_time = time.time()
+graphes = [Graphe([f"S{i}" for i in range(10)], {f"S{i}": [f"S{j}" for j in range(10) if j != i] for i in range(10)}, "S0")]
+end_time = time.time()
+execution_time = (end_time - start_time) * 1000
+print(f"{execution_time:.6f} ms")
 
+start_time = time.time()
+graphes_3 = [Graphe_3([f"S{i}" for i in range(10)], {f"S{i}": [f"S{j}" for j in range(10) if j != i] for i in range(10)}, "S0")]
+end_time = time.time()
+execution_time = (end_time - start_time) * 1000
+print(f"{execution_time:.6f} ms")
 
-
-
-def bench(methode,graphes_list,iteration=1000):
+def bench(methode,graphes_list,iteration=5):
     start_time = time.time()
     for _ in range(iteration):
         for graphe in graphes_list:
@@ -59,7 +65,6 @@ def bench(methode,graphes_list,iteration=1000):
     end_time = time.time()
     execution_time = (end_time - start_time) * 1000
     print(f"{methode}: {execution_time:.6f} ms")
-
 
 
 print("Last version")
